@@ -8,9 +8,10 @@ class Main {
 
     static Parser parser
     static Converter converter
+    static Probe probe
 
     static void main(String[] args) {
-        args = [
+        /*args = [
                 "-s", "/home/jonas/git/lenny/examples",
                 "-t", "/home/jonas/git/lenny/exout",
                 "-ffprobe", "/usr/bin/ffprobe",
@@ -23,19 +24,26 @@ class Main {
                 "-sv", "h264"
         ]
 
-        args = []
+        args = []*/
 
         Main.addShutdownHook {
             active = false
         }
 
         parser = new Parser(args)
+
         converter = new Converter(
                 parser.ffprobe,
                 parser.ffmpeg,
                 parser.targetVideo,
                 parser.targetAudio,
                 parser.targetFormat
+        )
+        probe = new Probe(
+                parser.ffprobe,
+                parser.supportedVideo,
+                parser.supportedAudio,
+                parser.supportedAudioLayout
         )
         def start = System.currentTimeMillis()
         while (active) {
@@ -49,7 +57,7 @@ class Main {
 
 
         def source = Index.next(parser.source, {
-            !it.name.contains(".lenny") && Probe.isVideo(it) && !Probe.isCompatible(it)
+            !it.name.contains(".lenny") && probe.isVideo(it) && !probe.isCompatible(it)
         })
 
         if (source == null) {

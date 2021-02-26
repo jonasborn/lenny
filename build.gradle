@@ -25,5 +25,15 @@ dependencies {
 }
 
 test {
-    useJUnitPlatform()
+
+}
+
+
+task fatJar(type: Jar) {
+    manifest {
+        attributes 'Main-Class': 'de.jonasborn.lenny.Main'
+    }
+    baseName = 'lenny-all-in-one.jar'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
 }

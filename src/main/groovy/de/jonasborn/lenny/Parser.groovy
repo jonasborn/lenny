@@ -1,6 +1,7 @@
 package de.jonasborn.lenny
 
 import net.sourceforge.argparse4j.ArgumentParsers
+import net.sourceforge.argparse4j.impl.Arguments
 import net.sourceforge.argparse4j.inf.ArgumentParser
 import net.sourceforge.argparse4j.inf.ArgumentParserException
 import net.sourceforge.argparse4j.inf.Namespace
@@ -43,7 +44,7 @@ class Parser {
         parser.addArgument("-ffmpeg")
                 .setDefault("/usr/bin/ffmpeg")
                 .help("Path to the ffmpeg")
-                .required(false)
+                .required(true)
 
         parser.addArgument("-sv", "--supportedvideo")
                 .nargs("*")
@@ -82,6 +83,7 @@ class Parser {
                 .setDefault(false)
                 .help("Delete source file after convert")
                 .required(false)
+                .action(Arguments.storeTrue())
 
         parser.addArgument("-to", "--timeout")
                 .setDefault(null)

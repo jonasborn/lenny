@@ -89,6 +89,7 @@ class Converter {
 
                 def all = (total * time) / frames
                 long remaining = (all - time) as long
+                remaining = (remaining / progress.speed) as Long //Used to give remaining real time, sort of
                 if (remaining < 0) remaining = 0.1;
                 //frames = zeit
                 //total = x
