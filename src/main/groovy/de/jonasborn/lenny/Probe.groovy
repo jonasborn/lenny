@@ -17,24 +17,24 @@ class Probe {
     private static Tika tika = new Tika()
 
     Probe(File ffprobe, List<String> supportedVideo, List<String> supportedAudioFormat, List<String> supportedAudioLayout) {
-        this.ffprobe =  new FFprobe(ffprobe.getAbsolutePath());
+        this.ffprobe = new FFprobe(ffprobe.getAbsolutePath());
         this.supportedVideo = supportedVideo
         this.supportedAudioFormat = supportedAudioFormat
         this.supportedAudioLayout = supportedAudioLayout
     }
 
-    public   boolean isVideo(File file) {
+    public boolean isVideo(File file) {
         return tika.detect(file).contains("video")
     }
 
-    public   Boolean isCompatible(File file) {
+    public Boolean isCompatible(File file, boolean show) {
         if (file == null || !file.exists() || !isVideo(file)) return null
 
         try {
-            Table.create().title("Checking codecs for " + file.name).render()
+            if (show) Table.create().title("Checking codecs for " + file.name).render()
 
-            boolean videoSupported = isVideoCompatible(file);
-            boolean audioSupported = isAudioCompatible(file);
+            boolean videoSupported = isVideoCompatible(file, show);
+            boolean audioSupported = isAudioCompatible(file, show);
 
             println ""
 
@@ -45,7 +45,7 @@ class Probe {
         }
     }
 
-    public   boolean isVideoCompatible(File file) {
+    public boolean isVideoCompatible(File file, boolean show) {
         FFmpegProbeResult probeResult = ffprobe.probe(file.getAbsolutePath());
         def streams = probeResult.streams;
         boolean videoSupported = false;
@@ -56,12 +56,12 @@ class Probe {
             if (supported) videoSupported = true
             t.addRow(it.index, "Video", it.duration_ts, it.codec_name, supported)
         }
-        t.render()
+        if (show) t.render()
         return videoSupported
     }
 
 
-    public   boolean isAudioCompatible(File file) {
+    public boolean isAudioCompatible(File file, boolean show) {
         FFmpegProbeResult probeResult = ffprobe.probe(file.getAbsolutePath());
         def streams = probeResult.streams;
         boolean audioSupported = false;
@@ -72,7 +72,7 @@ class Probe {
             if (supported) audioSupported = true
             t.addRow(it.index, "Audio", it.codec_name, it.channel_layout, supported)
         }
-        t.render()
+        if (show) t.render()
         return audioSupported
     }
 

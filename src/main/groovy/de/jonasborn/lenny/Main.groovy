@@ -12,7 +12,7 @@ class Main {
 
 
     static void main(String[] args) {
-         args = [
+        args = [
                 "-s", "/home/jonas/git/lenny/examples",
                 "-t", "/home/jonas/git/lenny/exout",
                 "-ffprobe", "/usr/bin/ffprobe",
@@ -35,19 +35,22 @@ class Main {
 
         if (!parser.target.exists()) parser.target.mkdirs()
 
-        converter = new Converter(
-                parser.ffprobe,
-                parser.ffmpeg,
-                parser.targetVideo,
-                parser.targetAudio,
-                parser.targetFormat
-        )
         probe = new Probe(
                 parser.ffprobe,
                 parser.supportedVideo,
                 parser.supportedAudio,
                 parser.supportedAudioLayout
         )
+
+        converter = new Converter(
+                probe,
+                parser.ffprobe,
+                parser.ffmpeg,
+                parser.targetVideo,
+                parser.targetAudio,
+                parser.targetFormat
+        )
+
         def start = System.currentTimeMillis()
         while (active) {
             run()
@@ -69,7 +72,7 @@ class Main {
         }
 
         if (source != null) {
-            
+
             def newTargetDir = new File(
                     parser.target,
                     source.parentFile.getAbsolutePath().replace(parser.source.getAbsolutePath(), "")
@@ -83,7 +86,7 @@ class Main {
             def newTarget = new File(source.parentFile, newTargetName)
             if (newTarget.exists()) newTarget.delete()
 
-            if (!probe.isCompatible(source)) {
+            if (!probe.isCompatible(source, true)) {
                 converter.convert(source, resultFile)
             } else {
                 copyFile(source, resultFile)

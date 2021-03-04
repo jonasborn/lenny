@@ -16,6 +16,8 @@ class Converter {
 
     private static int length = 80
 
+    Probe probe;
+
     public FFprobe ffprobe
     public FFmpeg ffmpeg
 
@@ -24,9 +26,11 @@ class Converter {
     String format
 
 
-    Converter(File ffprobe, File ffmpeg, String videoCodec, String audioCodec, String format) {
+    Converter(Probe probe, File ffprobe, File ffmpeg, String videoCodec, String audioCodec, String format) {
+        this.probe = probe;
         this.ffprobe = new FFprobe(ffprobe.getAbsolutePath())
         this.ffmpeg = new FFmpeg(ffmpeg.getAbsolutePath())
+
 
         if (!ffprobe.exists()) {
             println "FFprobe was not found at " + ffprobe.getAbsolutePath()
@@ -44,9 +48,14 @@ class Converter {
 
     public void convert(File source, File target) {
 
-        def probe = ffprobe.probe(source.getAbsolutePath())
+        def probeResult = ffprobe.probe(source.getAbsolutePath())
         //def audio = probe.streams.find { it.codec_type == FFmpegStream.CodecType.AUDIO }
-        def video = probe.streams.find { it.codec_type == FFmpegStream.CodecType.VIDEO }
+        def video = probeResult.streams.find { it.codec_type == FFmpegStream.CodecType.VIDEO }
+
+        def currentVideo = videoCodec
+        def currentAudio = audioCodec
+
+        if (probe.isVideoCompatible(source, false)) currentVideo = "copy"
 
 
         FFmpegBuilder builder = new FFmpegBuilder()
@@ -56,13 +65,13 @@ class Converter {
                 .setFormat(format)
                 .setAudioChannels(2)
                 .setAudioCodec(audioCodec)
-                .setVideoCodec(videoCodec)
+                .setVideoCodec(currentVideo)
                 .setVideoFrameRate(24, 1)
                 .setVideoResolution(video.width, video.height)
                 .done()
 
         def exec = new FFmpegExecutor(ffmpeg, ffprobe)
-        exec.createJob(builder, listener(probe)).run()
+        exec.createJob(builder, listener(probeResult)).run()
     }
 
     static void main(String[] args) {
@@ -72,21 +81,16 @@ class Converter {
     }
 
     public static ProgressListener listener(FFmpegProbeResult inp) {
-        def video = inp.streams.find { it.codec_type == FFmpegStream.CodecType.VIDEO }
         def total = inp.getFormat().duration * TimeUnit.SECONDS.toNanos(1)
-        def start = System.currentTimeMillis()
-
 
         new ProgressListener() {
             @Override
             public void progress(Progress progress) {
-                double percentage = (100 / total) * progress.frame / 100
-
                 def currentTime = progress.out_time_ns
-
+                double percentage = (currentTime / total);
                 def amount = (percentage * 100).round(2)
                 def text = [
-                        fixDouble(percentage, 3, 2) + "%",
+                        fixDouble(percentage * 100, 3, 2) + "%",
                         convertTime((total - currentTime) as long),
                         fixDouble(progress.speed, 3, 2) + " fps"
                 ].join(" - ")
@@ -100,6 +104,7 @@ class Converter {
     }
 
     private static String convertTime(Long l) {
+        if (l  < 1) l = 1;
         def s = FFmpegUtils.toTimecode(l, TimeUnit.NANOSECONDS).toString().padRight(12, "0")
         def spl = s.split("\\.")
         def end = spl[1];
