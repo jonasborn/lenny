@@ -12,7 +12,7 @@ class Main {
 
 
     static void main(String[] args) {
-        args = [
+        if (System.getProperty("develop") != null) args = [
                 "-s", "/home/jonas/git/lenny/examples",
                 "-t", "/home/jonas/git/lenny/exout",
                 "-ffprobe", "/usr/bin/ffprobe",
