@@ -39,7 +39,13 @@ usage: lenny [-h] -s SOURCE -t TARGET -ffprobe FFPROBE -ffmpeg FFMPEG -sv [SUPPO
 | -ta <audio format> | Target audio to convert to (like acc)                         |
 | -do                | Delete original file after converting                         |
 | -to                | Timeout to stop afterwards                                    |
+| -dc                | Copy files, even if there is no change                        |
 
 # Todo
 - Add a function to set the supported stream as primary and optionally remove all other unsupported strems
 - Add a function to copy the stream, if the stream is in a supported format
+
+# Known bugs
+For no reason, there are files with a metadata issue, so there is no valid data from
+ffmpeg. There is a new message showing the current frame and the speed - without any
+time or process info

@@ -20,6 +20,7 @@ class Parser {
     String targetFormat
     boolean deleteOriginal
     Long timeout
+    boolean docopy;
 
     public Parser(String[] args) {
         ArgumentParser parser = ArgumentParsers.newFor("lenny").build()
@@ -90,6 +91,12 @@ class Parser {
                 .help("Timeout to exit after")
                 .required(false)
 
+        parser.addArgument("-dc", "--docopy")
+                .setDefault(null)
+                .help("Do copy if no need to convert")
+                .required(false)
+                .action(Arguments.storeTrue())
+
         Namespace ns = null;
         try {
             ns = parser.parseArgs(args);
@@ -110,6 +117,7 @@ class Parser {
         this.targetFormat = ns.getString("targetformat")
         this.deleteOriginal = ns.getBoolean("deleteoriginal")
         this.timeout = ns.getLong("timeout")
+        this.docopy = ns.getBoolean("docopy")
     }
 
 }

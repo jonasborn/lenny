@@ -72,16 +72,18 @@ class Converter {
     }
 
     public static ProgressListener listener(FFmpegProbeResult inp) {
-
-        def total = inp.streams.first().nb_frames
+        def video = inp.streams.find { it.codec_type == FFmpegStream.CodecType.VIDEO }
+        def total = video.nb_frames
         def start = System.currentTimeMillis()
+
+        if (total == 0) return new InlineProcListener({ Progress p ->
+            print "Metadata failure: " + p.frame.toString().padLeft(8) +
+                    " frames with " + p.fps.toString().padLeft(10) + " fps \r"
+        })
 
         new ProgressListener() {
             @Override
             public void progress(Progress progress) {
-
-                //
-
                 double percentage = (100 / total) * progress.frame / 100
 
                 def time = (System.currentTimeMillis() - start)
@@ -91,8 +93,6 @@ class Converter {
                 long remaining = (all - time) as long
                 remaining = (remaining / progress.speed) as Long //Used to give remaining real time, sort of
                 if (remaining < 0) remaining = 0.1;
-                //frames = zeit
-                //total = x
 
                 def amount = (percentage * 100).round(2)
                 def text = [
@@ -105,17 +105,6 @@ class Converter {
                 def message = "[" + area + "] " + text
                 System.out.print(message + '\r');
 
-                /*// Print out interesting information about the progress
-                System.out.println(String.format(
-                        "[%s] status:%s frame:%d time:%s ms rem:%s msfps:%.0f speed:%.2fx",
-                        percentage * 100,
-                        progress.status,
-                        progress.frame,
-                        FFmpegUtils.toTimecode(progress.out_time_ns, TimeUnit.NANOSECONDS),
-                        FFmpegUtils.toTimecode(remaining, TimeUnit.MILLISECONDS),
-                        progress.fps.doubleValue(),
-                        progress.speed
-                ));*/
             }
         }
     }

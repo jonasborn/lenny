@@ -50,11 +50,11 @@ class Probe {
         def streams = probeResult.streams;
         boolean videoSupported = false;
 
-        def t = Table.create().add("Stream", "Codec", "Supported").strong()
+        def t = Table.create().add("Index", "Stream", "Rate", "Codec", "Supported").strong()
         streams.findAll { it.codec_type == FFmpegStream.CodecType.VIDEO }.each {
             def supported = supportedVideo.contains(it.codec_name)
             if (supported) videoSupported = true
-            t.addRow("Video", it.codec_name, supported)
+            t.addRow(it.index, "Video", it.bit_rate, it.codec_name, supported)
         }
         t.render()
         return videoSupported
@@ -66,11 +66,11 @@ class Probe {
         def streams = probeResult.streams;
         boolean audioSupported = false;
 
-        def t = Table.create().add("Stream", "Codec", "Channel", "Supported").strong()
+        def t = Table.create().add("Index", "Stream", "Codec", "Channel", "Supported").strong()
         streams.findAll { it.codec_type == FFmpegStream.CodecType.AUDIO }.each {
             def supported = supportedAudioFormat.contains(it.codec_name) && supportedAudioLayout.contains(it.channel_layout)
             if (supported) audioSupported = true
-            t.addRow("Audio", it.codec_name, it.channel_layout, supported)
+            t.addRow(it.index, "Audio", it.codec_name, it.channel_layout, supported)
         }
         t.render()
         return audioSupported

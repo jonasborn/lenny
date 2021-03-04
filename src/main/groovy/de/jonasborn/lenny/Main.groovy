@@ -10,6 +10,8 @@ class Main {
     static Converter converter
     static Probe probe
 
+
+
     static void main(String[] args) {
         /*args = [
                 "-s", "/home/jonas/git/lenny/examples",
@@ -22,15 +24,17 @@ class Main {
                 "-sal", "stereo",
                 "-sa", "ac3,mp3,acc",
                 "-sv", "h264"
-        ]
+        ]*/
 
-        args = []*/
+        //args = []*/
 
         Main.addShutdownHook {
             active = false
         }
 
         parser = new Parser(args)
+
+        if (!parser.target.exists()) parser.target.mkdirs()
 
         converter = new Converter(
                 parser.ffprobe,
@@ -57,7 +61,7 @@ class Main {
 
 
         def source = Index.next(parser.source, {
-            !it.name.contains(".lenny") && probe.isVideo(it) && !probe.isCompatible(it)
+            !it.name.contains(".lenny") && probe.isVideo(it)// && !probe.isCompatible(it)
         })
 
         if (source == null) {
@@ -66,10 +70,13 @@ class Main {
         }
 
         if (source != null) {
+
+
             def newTargetDir = new File(
                     parser.target,
                     source.parentFile.getAbsolutePath().replace(parser.source.getAbsolutePath(), "")
             )
+            if (!newTargetDir.exists()) newTargetDir.mkdirs()
 
             def resultName = Files.getNameWithoutExtension(source.name) + ".lenny.mkv"
             def resultFile = new File(newTargetDir, resultName)
@@ -78,16 +85,46 @@ class Main {
             def newTarget = new File(source.parentFile, newTargetName)
             if (newTarget.exists()) newTarget.delete()
 
-            converter.convert(source, resultFile)
+            if (!probe.isCompatible(source)) {
+                converter.convert(source, resultFile)
+            } else {
+                copyFile(source, resultFile)
+            }
 
             if (parser.deleteOriginal) {
                 source.delete()
             } else {
                 Files.move(source, newTarget)
             }
+
+
         }
 
 
+    }
+
+    public static void copyFile(File src, File dst) throws IOException {
+        try {
+            InputStream ips = new FileInputStream(src);
+            OutputStream out = new FileOutputStream(dst);
+            // Transfer bytes from in to out
+            long expectedBytes = src.length(); // This is the number of bytes we expected to copy..
+            long totalBytesCopied = 0; // This will track the total number of bytes we've copied
+            byte[] buf = new byte[1024];
+            int len = 0;
+            while ((len = ips.read(buf)) > 0) {
+                out.write(buf, 0, len);
+                totalBytesCopied += len;
+                int progress = (int) Math.round(((double) totalBytesCopied / (double) expectedBytes) * 100);
+                System.out.print("Copy file " + src.name + " - " + progress + "%" + "\r");
+
+            }
+            System.out.println("");
+            ips.close();
+            out.close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 /*
     static void maina(String[] args) {
