@@ -11,9 +11,8 @@ class Main {
     static Probe probe
 
 
-
     static void main(String[] args) {
-        /*args = [
+         args = [
                 "-s", "/home/jonas/git/lenny/examples",
                 "-t", "/home/jonas/git/lenny/exout",
                 "-ffprobe", "/usr/bin/ffprobe",
@@ -24,7 +23,7 @@ class Main {
                 "-sal", "stereo",
                 "-sa", "ac3,mp3,acc",
                 "-sv", "h264"
-        ]*/
+        ]
 
         //args = []*/
 
@@ -70,8 +69,7 @@ class Main {
         }
 
         if (source != null) {
-
-
+            
             def newTargetDir = new File(
                     parser.target,
                     source.parentFile.getAbsolutePath().replace(parser.source.getAbsolutePath(), "")

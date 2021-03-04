@@ -50,11 +50,11 @@ class Probe {
         def streams = probeResult.streams;
         boolean videoSupported = false;
 
-        def t = Table.create().add("Index", "Stream", "Rate", "Codec", "Supported").strong()
+        def t = Table.create().add("Index", "Stream", "Length", "Codec", "Supported").strong()
         streams.findAll { it.codec_type == FFmpegStream.CodecType.VIDEO }.each {
             def supported = supportedVideo.contains(it.codec_name)
             if (supported) videoSupported = true
-            t.addRow(it.index, "Video", it.bit_rate, it.codec_name, supported)
+            t.addRow(it.index, "Video", it.duration_ts, it.codec_name, supported)
         }
         t.render()
         return videoSupported

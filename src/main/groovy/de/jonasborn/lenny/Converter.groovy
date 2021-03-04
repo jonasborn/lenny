@@ -73,32 +73,22 @@ class Converter {
 
     public static ProgressListener listener(FFmpegProbeResult inp) {
         def video = inp.streams.find { it.codec_type == FFmpegStream.CodecType.VIDEO }
-        def total = video.nb_frames
+        def total = inp.getFormat().duration * TimeUnit.SECONDS.toNanos(1)
         def start = System.currentTimeMillis()
 
-        if (total == 0) return new InlineProcListener({ Progress p ->
-            print "Metadata failure: " + p.frame.toString().padLeft(8) +
-                    " frames with " + p.fps.toString().padLeft(10) + " fps \r"
-        })
 
         new ProgressListener() {
             @Override
             public void progress(Progress progress) {
                 double percentage = (100 / total) * progress.frame / 100
 
-                def time = (System.currentTimeMillis() - start)
-                def frames = progress.frame
-
-                def all = (total * time) / frames
-                long remaining = (all - time) as long
-                remaining = (remaining / progress.speed) as Long //Used to give remaining real time, sort of
-                if (remaining < 0) remaining = 0.1;
+                def currentTime = progress.out_time_ns
 
                 def amount = (percentage * 100).round(2)
                 def text = [
-                        fixDouble(amount, 3, 2),
-                        FFmpegUtils.toTimecode(remaining, TimeUnit.MILLISECONDS).toString().padRight(12, "0"),
-                        fixDouble(progress.speed, 3, 2)
+                        fixDouble(percentage, 3, 2) + "%",
+                        convertTime((total - currentTime) as long),
+                        fixDouble(progress.speed, 3, 2) + " fps"
                 ].join(" - ")
                 def textLength = text.size() + 3
                 def area = "".padRight((int) ((length - textLength) / 100) * amount, "#").padRight((length - textLength), ".")
@@ -107,6 +97,14 @@ class Converter {
 
             }
         }
+    }
+
+    private static String convertTime(Long l) {
+        def s = FFmpegUtils.toTimecode(l, TimeUnit.NANOSECONDS).toString().padRight(12, "0")
+        def spl = s.split("\\.")
+        def end = spl[1];
+        if (end.length() > 2) end = end.substring(0, 2);
+        return spl[0] + "." + end
     }
 
     private static String fixDouble(double d, int left, int right) {
