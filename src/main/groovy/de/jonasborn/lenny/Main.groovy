@@ -12,20 +12,7 @@ class Main {
 
 
     static void main(String[] args) {
-        if (System.getProperty("develop") != null) args = [
-                "-s", "/home/jonas/git/lenny/examples",
-                "-t", "/home/jonas/git/lenny/exout",
-                "-ffprobe", "/usr/bin/ffprobe",
-                "-ffmpeg", "/usr/bin/ffmpeg",
-                "-tf", "mp4",
-                "-ta", "ac3",
-                "-tv", "h264",
-                "-sal", "stereo",
-                "-sa", "ac3,mp3,acc",
-                "-sv", "h264"
-        ]
 
-        //args = []*/
 
         Main.addShutdownHook {
             active = false

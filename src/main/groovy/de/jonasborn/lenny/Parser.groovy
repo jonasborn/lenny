@@ -97,9 +97,27 @@ class Parser {
                 .required(false)
                 .action(Arguments.storeTrue())
 
+        List<String> newArgs = []
+        String last = ""
+        args.each {
+            if (it.startsWith("'")) {
+                last = it.substring(1, it.length())
+            } else if (it.endsWith("'")) {
+                newArgs.add(last + " " + it.substring(0, it.length() -1))
+                last = null
+            } else if (it.startsWith("-")) {
+                if (last != null) newArgs.add(last)
+                last = null
+                newArgs.add(it)
+            } else {
+                newArgs.add(it)
+            }
+        }
+        newArgs.remove(0)
+
         Namespace ns = null;
         try {
-            ns = parser.parseArgs(args);
+            ns = parser.parseArgs(newArgs as String[]);
         } catch (ArgumentParserException e) {
             parser.handleError(e);
             System.exit(1);

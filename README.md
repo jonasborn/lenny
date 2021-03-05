@@ -41,6 +41,9 @@ usage: lenny [-h] -s SOURCE -t TARGET -ffprobe FFPROBE -ffmpeg FFMPEG -sv [SUPPO
 | -to                | Timeout to stop afterwards                                    |
 | -dc                | Copy files, even if there is no change                        |
 
+>What about spaces? Windows got some "special" handling of spaces in paths, therefore
+> using single quotes (') around a path will help, you don't have to use double quotes.
+
 # Todo
 - Add a function to set the supported stream as primary and optionally remove all other unsupported strems
 - Add a function to copy the stream, if the stream is in a supported format
