@@ -25,21 +25,25 @@ usage: lenny [-h] -s SOURCE -t TARGET -ffprobe FFPROBE -ffmpeg FFMPEG -sv [SUPPO
 
 ## Parameters
 
-|  Parameter         | Description                                                   |
-|--------------------|---------------------------------------------------------------|
-| -h                 | Show some help info                                           |
-| -s <dir>           | Source directory (required)                                   |
-| -t <dir>           | Target directory (required)                                   |
-| -ffprobe <file>    | Path to FFprobe (defaults to /usr/bin/ffprobe)                |
-| -ffmpeg <file>     | Path to FFmpeg (defaults to /usr/bin/ffmpeg)                  |
-| -sv <[]>           | List of supported video formats (defaults to [h264])          |
-| -sa <[]>           | List of supported audio formats (defaults to [acc, ac3, mp3]) |
-| -sal <[]>          | List of supported audio layouts (defaults to [stereo])        |
-| -tv <audio format> | Target video to convert to (like h264)                        |
-| -ta <audio format> | Target audio to convert to (like acc)                         |
-| -do                | Delete original file after converting                         |
-| -to                | Timeout to stop afterwards                                    |
-| -dc                | Copy files, even if there is no change                        |
+|  Parameter         | Description                                                            |
+|--------------------|------------------------------------------------------------------------|
+| -h                 | Show some help info                                                    |
+| -s <dir>           | Source directory (required)                                            |
+| -t <dir>           | Target directory (required)                                            |
+| -ffprobe <file>    | Path to FFprobe (defaults to /usr/bin/ffprobe)                         |
+| -ffmpeg <file>     | Path to FFmpeg (defaults to /usr/bin/ffmpeg)                           |
+| -sv <[]>           | List of supported video formats (defaults to [h264])                   |
+| -sa <[]>           | List of supported audio formats (defaults to [acc, ac3, mp3])          |
+| -sal <[]>          | List of supported audio layouts (defaults to [stereo])                 |
+| -tv <audio format> | Target video to convert to (like h264)                                 |
+| -ta <audio format> | Target audio to convert to (like acc)                                  |
+| -do                | Delete original file after converting                                  |
+| -to                | Timeout to stop afterwards                                             |
+| -dc                | Copy files, even if there is no change                                 |
+| -si                | Do not index all source files before starting                          |
+| -bs                | Set the buffer size of the copy handler (defaults to 8192)             |
+| -mk                | Set the marker to be used for the files (defaults to lenny)            |
+| -ex                | Set phrases to mach against in file paths and exclude. Case sensitive! |
 
 >What about spaces? Windows got some "special" handling of spaces in paths, therefore
 > using single quotes (') around a path will help, you don't have to use double quotes.

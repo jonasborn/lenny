@@ -42,11 +42,15 @@ class Main {
 
         def total = -1;
         def pos = 0;
-        if (!parser.skipIndex) total = Index.list(parser.source).findAll {
-            if ((pos % 100) == 0) println "Indexing file $pos" + "\r"
-            pos++;
-            return !it.name.contains(".lenny") && probe.isVideo(it) && !isExcluded(parser, it)
-        }.size()
+        if (!parser.skipIndex) {
+            total = Index.countRecrusive(parser.source, {
+                if ((pos % 100) == 0) print "Indexing file $pos" + "\r"
+                pos++;
+                return !it.name.contains("." + parser.marker) && probe.isVideo(it) && !isExcluded(parser, it)
+            })
+        }
+        println ""
+
 
         def finished = 1;
 
@@ -62,7 +66,7 @@ class Main {
     static void run() {
 
         def source = Index.next(parser.source, {
-            !it.name.contains(".lenny") && probe.isVideo(it) && !isExcluded(parser, it)
+            !it.name.contains("." + parser.marker) && probe.isVideo(it) && !isExcluded(parser, it)
         })
 
         if (source == null) {
@@ -78,7 +82,7 @@ class Main {
             )
             if (!targetDir.exists()) targetDir.mkdirs()
 
-            def targetFileName = Files.getNameWithoutExtension(source.name) + ".lenny.mkv"
+            def targetFileName = Files.getNameWithoutExtension(source.name) + "." + parser.marker + ".mkv"
             def target = new File(targetDir, targetFileName)
 
             probe.printDetails(source, target);
@@ -88,7 +92,7 @@ class Main {
                     converter.convert(source, target)
                 } catch (Exception e) {
                     e.printStackTrace()
-                    move(source, "lennybroken")
+                    move(source, parser.marker + "broken")
                     return;
                 }
             } else {
@@ -98,7 +102,7 @@ class Main {
             if (parser.deleteOriginal) {
                 source.delete()
             } else {
-                move(source, "lennyoriginal")
+                move(source, parser.marker + "original")
             }
 
             println ""
@@ -115,39 +119,11 @@ class Main {
         Files.move(source, sourceMoveTarget)
     }
 
-/*
-    static void maina(String[] args) {
-        def source = Index.next(new File("examples"), {
-            println it
-            println Probe.isVideo(it)
-            println !it.name.contains(".lenny.")
 
 
-            Probe.isVideo(it) &&
-                    !it.name.contains(".lenny.") &&
-                    !Probe.isCompatible(it)
-        })
-
-        if (source != null) {
-
-            println "Found file " + source.getPath() + " - attempting to convert"
-
-            def dir = source.parentFile
-            def name = source.name
-            def ext = Files.getFileExtension(name)
-
-            def file = new File(dir, name + ".lenny." + ext)
-            def target = new File(dir, name + ".mp4")
-
-            Files.move(source, file)
-            Converter.convert(file, target)
-        }
-        println source
-    }*/
-
-    public boolean isExcluded(Parser parser, File f) {
+    public static boolean isExcluded(Parser parser, File f) {
         def p = f.getAbsolutePath()
-        return (parser.exclude.find {p.contains(it)} != null)
+        return (parser.exclude.find { p.contains(it) } != null)
     }
 
 }

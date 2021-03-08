@@ -12,6 +12,14 @@ class Index {
         return r
     }
 
+    public static Long countRecrusive(File dir, Function<File, Boolean> condition) {
+        long total = 0;
+        dir.traverse(type: groovy.io.FileType.FILES) {
+            if (condition.apply(it)) total++;
+        }
+        return total
+    }
+
 
     public static File next(File dir, Function<File, Boolean> condition) {
         def r = null
