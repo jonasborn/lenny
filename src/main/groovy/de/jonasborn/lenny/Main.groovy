@@ -39,15 +39,27 @@ class Main {
         )
 
         def start = System.currentTimeMillis()
+
+        def total = -1;
+        def pos = 0;
+        if (!parser.skipIndex) total = Index.list(parser.source).findAll {
+            !it.name.contains(".lenny") && probe.isVideo(it)
+            if ((pos % 100) == 0) println "Indexing file $pos" + "\r"
+            pos++;
+        }.size()
+
+        def finished = 1;
+
         while (active) {
+            Table.create().strong().add("Handling file " + finished + " of " + total).strong().render();
             run()
             if (parser.timeout != null && System.currentTimeMillis() > (start + parser.timeout)) System.exit(1)
+            finished++;
         }
 
     }
 
     static void run() {
-
 
         def source = Index.next(parser.source, {
             !it.name.contains(".lenny") && probe.isVideo(it)// && !probe.isCompatible(it)
@@ -60,60 +72,49 @@ class Main {
 
         if (source != null) {
 
-            def newTargetDir = new File(
+            def targetDir = new File(
                     parser.target,
                     source.parentFile.getAbsolutePath().replace(parser.source.getAbsolutePath(), "")
             )
-            if (!newTargetDir.exists()) newTargetDir.mkdirs()
+            if (!targetDir.exists()) targetDir.mkdirs()
 
-            def resultName = Files.getNameWithoutExtension(source.name) + ".lenny.mkv"
-            def resultFile = new File(newTargetDir, resultName)
-            def newTargetName = Files.getNameWithoutExtension(source.name) + ".lennyoriginal"
+            def targetFileName = Files.getNameWithoutExtension(source.name) + ".lenny.mkv"
+            def target = new File(targetDir, targetFileName)
 
-            def newTarget = new File(source.parentFile, newTargetName)
-            if (newTarget.exists()) newTarget.delete()
+            probe.printDetails(source, target);
 
-            if (!probe.isCompatible(source, true)) {
-                converter.convert(source, resultFile)
+            if (!probe.isCompatible(source)) {
+                try {
+                    converter.convert(source, target)
+                } catch (Exception e) {
+                    e.printStackTrace()
+                    move(source, "lennybroken")
+                    return;
+                }
             } else {
-                copyFile(source, resultFile)
+                Copier.copyFile(parser.bufferSize, source, target)
             }
 
             if (parser.deleteOriginal) {
                 source.delete()
             } else {
-                Files.move(source, newTarget)
+                move(source, "lennyoriginal")
             }
 
+            println ""
 
         }
 
 
     }
 
-    public static void copyFile(File src, File dst) throws IOException {
-        try {
-            InputStream ips = new FileInputStream(src);
-            OutputStream out = new FileOutputStream(dst);
-            // Transfer bytes from in to out
-            long expectedBytes = src.length(); // This is the number of bytes we expected to copy..
-            long totalBytesCopied = 0; // This will track the total number of bytes we've copied
-            byte[] buf = new byte[1024];
-            int len = 0;
-            while ((len = ips.read(buf)) > 0) {
-                out.write(buf, 0, len);
-                totalBytesCopied += len;
-                int progress = (int) Math.round(((double) totalBytesCopied / (double) expectedBytes) * 100);
-                System.out.print("Copy file " + src.name + " - " + progress + "%" + "\r");
-
-            }
-            System.out.println("");
-            ips.close();
-            out.close();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+    public static void move(File source, String suffix) {
+        def sourceMoveTargetName = Files.getNameWithoutExtension(source.name) + "." + suffix
+        def sourceMoveTarget = new File(source.parentFile, sourceMoveTargetName)
+        if (sourceMoveTarget.exists()) sourceMoveTarget.delete()
+        Files.move(source, sourceMoveTarget)
     }
+
 /*
     static void maina(String[] args) {
         def source = Index.next(new File("examples"), {

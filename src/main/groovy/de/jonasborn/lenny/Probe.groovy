@@ -1,6 +1,6 @@
 package de.jonasborn.lenny
 
-
+import de.vandermeer.skb.interfaces.transformers.textformat.TextAlignment
 import net.bramp.ffmpeg.FFprobe
 import net.bramp.ffmpeg.probe.FFmpegProbeResult
 import net.bramp.ffmpeg.probe.FFmpegStream
@@ -24,20 +24,16 @@ class Probe {
     }
 
     public boolean isVideo(File file) {
+        if (!file.exists()) return false;
         return tika.detect(file).contains("video")
     }
 
-    public Boolean isCompatible(File file, boolean show) {
+    public Boolean isCompatible(File file) {
         if (file == null || !file.exists() || !isVideo(file)) return null
 
         try {
-            if (show) Table.create().title("Checking codecs for " + file.name).render()
-
-            boolean videoSupported = isVideoCompatible(file, show);
-            boolean audioSupported = isAudioCompatible(file, show);
-
-            println ""
-
+            boolean videoSupported = isVideoCompatible(file);
+            boolean audioSupported = isAudioCompatible(file);
             return (videoSupported && audioSupported)
         } catch (Exception e) {
             e.printStackTrace()
@@ -45,40 +41,59 @@ class Probe {
         }
     }
 
-    public boolean isVideoCompatible(File file, boolean show) {
+    public boolean isVideoCompatible(File file) {
         FFmpegProbeResult probeResult = ffprobe.probe(file.getAbsolutePath());
         def streams = probeResult.streams;
-        boolean videoSupported = false;
+        return streams.findAll { it.codec_type == FFmpegStream.CodecType.VIDEO }
+                .find { supportedVideo.contains(it.codec_name) }
+    }
 
-        def t = Table.create().add("Index", "Stream", "Length", "Codec", "Supported").strong()
+
+    public boolean isAudioCompatible(File file) {
+        FFmpegProbeResult probeResult = ffprobe.probe(file.getAbsolutePath());
+        def streams = probeResult.streams;
+
+        return streams.findAll { it.codec_type == FFmpegStream.CodecType.AUDIO }
+                .find { supportedAudioFormat.contains(it.codec_name) && supportedAudioLayout.contains(it.channel_layout) }
+    }
+
+    public void printDetails(File source, File target) {
+        FFmpegProbeResult probeResult = ffprobe.probe(source.getAbsolutePath());
+        def format = probeResult.format
+        def streams = probeResult.streams
+
+        Table.create(TextAlignment.CENTER).strong().add("Source file details").strong().render()
+        Table.create().add(source.getAbsolutePath()).normal().render()
+
+        Table.create(TextAlignment.CENTER).strong().add("Format details").strong().render()
+        def t = Table.create().add("Format", "Duration", "Bit rate").normal()
+        t.add(format.format_name, format.duration, format.bit_rate)
+        t.normal().render()
+
+        Table.create(TextAlignment.CENTER).strong().add("Video details").strong().render()
+        t = Table.create().add("Index", "Stream", "Length", "Codec", "Supported").strong()
         streams.findAll { it.codec_type == FFmpegStream.CodecType.VIDEO }.each {
             def supported = supportedVideo.contains(it.codec_name)
-            if (supported) videoSupported = true
-            t.addRow(it.index, "Video", it.duration_ts, it.codec_name, supported)
+            t.addRow(it.index, "Video", it.duration, it.codec_name, supported)
         }
-        if (show) t.render()
-        return videoSupported
-    }
+        t.render()
 
-
-    public boolean isAudioCompatible(File file, boolean show) {
-        FFmpegProbeResult probeResult = ffprobe.probe(file.getAbsolutePath());
-        def streams = probeResult.streams;
-        boolean audioSupported = false;
-
-        def t = Table.create().add("Index", "Stream", "Codec", "Channel", "Supported").strong()
+        Table.create(TextAlignment.CENTER).strong().add("Audio details").strong().render()
+        t = Table.create().add("Index", "Stream", "Codec", "Channel", "Supported").strong()
         streams.findAll { it.codec_type == FFmpegStream.CodecType.AUDIO }.each {
             def supported = supportedAudioFormat.contains(it.codec_name) && supportedAudioLayout.contains(it.channel_layout)
-            if (supported) audioSupported = true
             t.addRow(it.index, "Audio", it.codec_name, it.channel_layout, supported)
         }
-        if (show) t.render()
-        return audioSupported
+        t.render()
+
+        Table.create(TextAlignment.CENTER).strong().add("Target file details").strong().render()
+        Table.create().add(target.getAbsolutePath()).normal().render()
     }
 
-
     static void main(String[] args) {
-        println Probe.isCompatible(new File("examples/ccnotworking1.avi"))
+
+
+
     }
 
 }

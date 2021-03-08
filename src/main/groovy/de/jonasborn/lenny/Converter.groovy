@@ -51,12 +51,13 @@ class Converter {
         def probeResult = ffprobe.probe(source.getAbsolutePath())
         //def audio = probe.streams.find { it.codec_type == FFmpegStream.CodecType.AUDIO }
         def video = probeResult.streams.find { it.codec_type == FFmpegStream.CodecType.VIDEO }
+        if (video == null) throw new StreamNotFoundException("No video file found!")
+
 
         def currentVideo = videoCodec
         def currentAudio = audioCodec
 
-        if (probe.isVideoCompatible(source, false)) currentVideo = "copy"
-
+        if (probe.isVideoCompatible(source)) currentVideo = "copy"
 
         FFmpegBuilder builder = new FFmpegBuilder()
         builder.setInput(source.getAbsolutePath())
@@ -68,6 +69,7 @@ class Converter {
                 .setVideoCodec(currentVideo)
                 .setVideoFrameRate(24, 1)
                 .setVideoResolution(video.width, video.height)
+                .setPreset("ultrafast")
                 .done()
 
         def exec = new FFmpegExecutor(ffmpeg, ffprobe)
@@ -75,9 +77,7 @@ class Converter {
     }
 
     static void main(String[] args) {
-
-
-        convert(new File("examples/ccnotworking1.avi"), new File("examples/ccconv1.mp4"))
+        //convert(new File("examples/ccnotworking1.avi"), new File("examples/ccconv1.mp4"))
     }
 
     public static ProgressListener listener(FFmpegProbeResult inp) {
@@ -88,39 +88,17 @@ class Converter {
             public void progress(Progress progress) {
                 def currentTime = progress.out_time_ns
                 double percentage = (currentTime / total);
-                def amount = (percentage * 100).round(2)
                 def text = [
-                        fixDouble(percentage * 100, 3, 2) + "%",
-                        convertTime((total - currentTime) as long),
-                        fixDouble(progress.speed, 3, 2) + " fps"
-                ].join(" - ")
-                def textLength = text.size() + 3
-                def area = "".padRight((int) ((length - textLength) / 100) * amount, "#").padRight((length - textLength), ".")
-                def message = "[" + area + "] " + text
-                System.out.print(message + '\r');
+                        Msg.fixDouble(percentage * 100, 3, 2) + "%",
+                        Msg.convertTime((total - currentTime) as long),
+                        Msg.fixDouble(progress.speed, 3, 2) + " fps"
+                ]
+                Msg.process("CON", (percentage * 100) as int, text)
+
 
             }
         }
     }
 
-    private static String convertTime(Long l) {
-        if (l  < 1) l = 1;
-        def s = FFmpegUtils.toTimecode(l, TimeUnit.NANOSECONDS).toString().padRight(12, "0")
-        def spl = s.split("\\.")
-        def end = spl[1];
-        if (end.length() > 2) end = end.substring(0, 2);
-        return spl[0] + "." + end
-    }
-
-    private static String fixDouble(double d, int left, int right) {
-        def s = d.toString()
-        if (!s.contains(".")) {
-            s = s + ".00"
-        }
-        def p = s.split("\\.")
-        def a = p[0].padLeft(left, "0")
-        def b = p[1].padRight(right, "0").substring(0, right)
-        return a + "." + b
-    }
 
 }

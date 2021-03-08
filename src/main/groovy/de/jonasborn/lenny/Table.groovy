@@ -5,21 +5,20 @@ import de.vandermeer.asciitable.AsciiTable
 import de.vandermeer.asciithemes.a7.A7_Grids
 import de.vandermeer.asciithemes.a8.A8_Grids
 import de.vandermeer.asciithemes.u8.U8_Grids
+import de.vandermeer.skb.interfaces.transformers.textformat.TextAlignment
 
 class Table {
 
     private AsciiTable at
 
-    static Table create() {
+    static Table create(TextAlignment alignment = TextAlignment.LEFT) {
         return new Table();
     }
 
-    Table() {
-
+    Table(TextAlignment alignment) {
         def context = new AT_Context();
         context.setGrid(A7_Grids.minusBarPlusEquals())
         at = new AsciiTable(context);
-
     }
 
     public Table strong() {
@@ -49,7 +48,7 @@ class Table {
     }
 
     public Table add(Object... objects) {
-        at.addRow(objects.collect { it.toString() })
+        at.addRow(objects.collect { it.toString() }).setTextAlignment(TextAlignment.CENTER)
         return this
     }
 

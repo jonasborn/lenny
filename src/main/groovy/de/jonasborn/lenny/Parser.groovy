@@ -21,6 +21,9 @@ class Parser {
     boolean deleteOriginal
     Long timeout
     boolean docopy;
+    int bufferSize;
+    boolean skipIndex;
+    String marker;
 
     public Parser(String[] args) {
         ArgumentParser parser = ArgumentParsers.newFor("lenny").build()
@@ -97,23 +100,43 @@ class Parser {
                 .required(false)
                 .action(Arguments.storeTrue())
 
+        parser.addArgument("-si", "--skipindex")
+                .setDefault(null)
+                .help("Do not search for all files before starting")
+                .required(false)
+                .action(Arguments.storeTrue())
+
+
+        parser.addArgument("-bs", "--buffersize")
+                .setDefault(8192)
+                .help("Size of the copy fugger")
+                .required(false)
+                .type(Integer.class)
+
+        parser.addArgument("-mk", "--marker")
+                .setDefault("lenny")
+                .help("Name of the marker used to mark original and new files")
+                .required(false)
+
+
         List<String> newArgs = []
         String last = ""
         args.each {
             if (it.startsWith("'")) {
                 last = it.substring(1, it.length())
             } else if (it.endsWith("'")) {
-                newArgs.add(last + " " + it.substring(0, it.length() -1))
+                newArgs.add(last + " " + it.substring(0, it.length() - 1))
                 last = null
             } else if (it.startsWith("-")) {
-                if (last != null) newArgs.add(last)
+                if (last != null && last.length() > 0) newArgs.add(last.substring(0, last.length() - 1))
                 last = null
                 newArgs.add(it)
+            } else if (last != null) {
+                last = last + " " + it
             } else {
                 newArgs.add(it)
             }
         }
-        newArgs.remove(0)
 
         Namespace ns = null;
         try {
@@ -122,6 +145,7 @@ class Parser {
             parser.handleError(e);
             System.exit(1);
         }
+
 
         this.source = new File(ns.getString("source"))
         this.target = new File(ns.getString("target"))
@@ -136,6 +160,9 @@ class Parser {
         this.deleteOriginal = ns.getBoolean("deleteoriginal")
         this.timeout = ns.getLong("timeout")
         this.docopy = ns.getBoolean("docopy")
+        this.bufferSize = ns.getInt("buffersize")
+        this.skipIndex = ns.getBoolean("skipindex")
+        this.marker = ns.getString("marker")
     }
 
 }
