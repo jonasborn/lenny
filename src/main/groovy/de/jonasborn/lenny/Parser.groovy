@@ -24,6 +24,7 @@ class Parser {
     int bufferSize;
     boolean skipIndex;
     String marker;
+    List<String> exclude
 
     public Parser(String[] args) {
         ArgumentParser parser = ArgumentParsers.newFor("lenny").build()
@@ -118,6 +119,11 @@ class Parser {
                 .help("Name of the marker used to mark original and new files")
                 .required(false)
 
+        parser.addArgument("-ex", "--exclude")
+                .setDefault([])
+                .help("A list of string used to exclude files if their path contains one of them")
+                .required(false)
+                .nargs("*")
 
         List<String> newArgs = []
         String last = ""
@@ -163,6 +169,7 @@ class Parser {
         this.bufferSize = ns.getInt("buffersize")
         this.skipIndex = ns.getBoolean("skipindex")
         this.marker = ns.getString("marker")
+        this.exclude = ns.getList("exclude")
     }
 
 }

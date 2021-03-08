@@ -43,9 +43,9 @@ class Main {
         def total = -1;
         def pos = 0;
         if (!parser.skipIndex) total = Index.list(parser.source).findAll {
-            !it.name.contains(".lenny") && probe.isVideo(it)
             if ((pos % 100) == 0) println "Indexing file $pos" + "\r"
             pos++;
+            return !it.name.contains(".lenny") && probe.isVideo(it) && !isExcluded(parser, it)
         }.size()
 
         def finished = 1;
@@ -62,7 +62,7 @@ class Main {
     static void run() {
 
         def source = Index.next(parser.source, {
-            !it.name.contains(".lenny") && probe.isVideo(it)// && !probe.isCompatible(it)
+            !it.name.contains(".lenny") && probe.isVideo(it) && !isExcluded(parser, it)
         })
 
         if (source == null) {
@@ -144,5 +144,10 @@ class Main {
         }
         println source
     }*/
+
+    public boolean isExcluded(Parser parser, File f) {
+        def p = f.getAbsolutePath()
+        return (parser.exclude.find {p.contains(it)} != null)
+    }
 
 }
