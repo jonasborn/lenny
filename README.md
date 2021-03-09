@@ -37,6 +37,7 @@ usage: lenny [-h] -s SOURCE -t TARGET -ffprobe FFPROBE -ffmpeg FFMPEG -sv [SUPPO
 | -sal <[]>          | List of supported audio layouts (defaults to [stereo])                 |
 | -tv <audio format> | Target video to convert to (like h264)                                 |
 | -ta <audio format> | Target audio to convert to (like acc)                                  |
+| -tc <audio cha.  > | Target audio channel amount to use                                     |
 | -do                | Delete original file after converting                                  |
 | -to                | Timeout to stop afterwards                                             |
 | -dc                | Copy files, even if there is no change                                 |

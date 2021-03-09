@@ -17,6 +17,7 @@ class Parser {
     List<String> supportedAudioLayout
     String targetVideo
     String targetAudio
+    int targetChannels
     String targetFormat
     boolean deleteOriginal
     Long timeout
@@ -75,9 +76,15 @@ class Parser {
                 .required(true)
 
         parser.addArgument("-ta", "--targetaudio")
-                .setDefault("ac3")
+                .setDefault("aac")
                 .help("Target audio format to convert to")
                 .required(true)
+
+        parser.addArgument("-tc", "--targetchannels")
+                .setDefault(2)
+                .help("Target channel amount")
+                .type(Integer.class)
+                .required(true);
 
         parser.addArgument("-tf", "--targetformat")
                 .setDefault("mp4")
@@ -162,6 +169,7 @@ class Parser {
         this.supportedAudioLayout = ns.getList("supportedaudiolayout")
         this.targetVideo = ns.getString("targetvideo")
         this.targetAudio = ns.getString("targetaudio")
+        this.targetChannels = ns.getInt("targetchannels")
         this.targetFormat = ns.getString("targetformat")
         this.deleteOriginal = ns.getBoolean("deleteoriginal")
         this.timeout = ns.getLong("timeout")

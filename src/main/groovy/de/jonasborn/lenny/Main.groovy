@@ -35,18 +35,22 @@ class Main {
                 parser.ffmpeg,
                 parser.targetVideo,
                 parser.targetAudio,
+                parser.targetChannels,
                 parser.targetFormat
         )
 
         def start = System.currentTimeMillis()
 
         def total = -1;
+        def excluded = 0;
         def pos = 0;
         if (!parser.skipIndex) {
             total = Index.countRecrusive(parser.source, {
-                if ((pos % 100) == 0) print "Indexing file $pos" + "\r"
+                def ex = isExcluded(parser, it)
+                if (ex) excluded++;
+                if ((pos % 100) == 0) print "Indexing file $pos, $excluded files excluded".padRight(80) + "\r"
                 pos++;
-                return !it.name.contains("." + parser.marker) && probe.isVideo(it) && !isExcluded(parser, it)
+                return !it.name.contains("." + parser.marker) && probe.isVideo(it) && !ex
             })
         }
         println ""
@@ -98,6 +102,8 @@ class Main {
             } else {
                 Copier.copyFile(parser.bufferSize, source, target)
             }
+            println ""
+            probe.printResultDetails(target);
 
             if (parser.deleteOriginal) {
                 source.delete()
@@ -118,7 +124,6 @@ class Main {
         if (sourceMoveTarget.exists()) sourceMoveTarget.delete()
         Files.move(source, sourceMoveTarget)
     }
-
 
 
     public static boolean isExcluded(Parser parser, File f) {

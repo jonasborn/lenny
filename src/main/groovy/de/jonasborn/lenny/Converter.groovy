@@ -21,12 +21,13 @@ class Converter {
     public FFprobe ffprobe
     public FFmpeg ffmpeg
 
-    String videoCodec;
+    String videoCodec
     String audioCodec
+    Integer audioChannels
     String format
 
 
-    Converter(Probe probe, File ffprobe, File ffmpeg, String videoCodec, String audioCodec, String format) {
+    Converter(Probe probe, File ffprobe, File ffmpeg, String videoCodec, String audioCodec, Integer audioChannels, String format) {
         this.probe = probe;
         this.ffprobe = new FFprobe(ffprobe.getAbsolutePath())
         this.ffmpeg = new FFmpeg(ffmpeg.getAbsolutePath())
@@ -43,6 +44,7 @@ class Converter {
 
         this.videoCodec = videoCodec
         this.audioCodec = audioCodec
+        this.audioChannels = audioChannels
         this.format = format
     }
 
@@ -64,10 +66,9 @@ class Converter {
                 .overrideOutputFiles(true)
                 .addOutput(target.getAbsolutePath())
                 .setFormat(format)
-                .setAudioChannels(2)
+                .setAudioChannels(audioChannels)
                 .setAudioCodec(audioCodec)
                 .setVideoCodec(currentVideo)
-                .setVideoFrameRate(24, 1)
                 .setVideoResolution(video.width, video.height)
                 .setPreset("ultrafast")
                 .done()
